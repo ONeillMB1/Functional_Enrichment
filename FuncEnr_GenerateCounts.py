@@ -1,71 +1,110 @@
 #!/usr/bin/env python
 
 import sys
-from collections import defaultdict
 
-#if len(sys.argv) != 5 :
-#	print("Usage:  counts.py  <GeneSetFile.txt> <totsamplefile.txt> <candidatesample> <OutputFile.txt>")
-#	sys.exit(0)
+# This script produces a counts file for the Fisher's Exact test of the
+# functional enrichment analysis.
 
-#progname,genesetfilename,totsampfilename,candsampfilename,outfilename = sys.argv
+def usage():
+    print "FuncEnr_counts.py <Gene Set File> <Sample Prefix>"
 
-#geneset = raw_input("GeneSetFileName: ")
-#sample = raw_input("sample: ")
-tail = raw_input("top or bot :")
+def get_categories(geneSetFile):
+    """ Makes a dictionary of categories and their corresponding genes for files
+    that a formatted as a list of genes with their categories"""
+    catDict = {}
+    catFile = open(geneSetFile, 'r')
+    for line in catFile:
+        line = line.strip()
+        line = line.split('\t')
+        cat = line[1]
+        gene = line[0].split()[0]
+        if cat in catDict:
+            catDict[cat].append(gene)
+        else:
+            catDict[cat] = [gene]
+    return catDict
 
+def get_categories2(geneSetFile):
+    """ Makes a dictionary of categories and their corresponding genes for
+    files that are formatted as a list of cateogories with their genes"""
+    catDict = {}
+    catFile = open(geneSetFile, 'r')
+    for line in catFile:
+        line = line.strip()
+        line = line.split('\t')
+        cat = line[0]
+        catDict[cat] = line[2].split()
+    return catDict
 
-for i in ["a1", "a2", "a3", "b2", "c1", "c2", "a12", "a23", "a13", "b12", "c12"] :
-    sample = i
+def get_genes(prefix):
+    """ Gets a list of genes from three files. One representing all genes in a
+    sample, one representing the upper tail of a distribution of those genes,
+    and one representing the lower tail of a distribution of those genes. """
+    allList = []
+    botList = []
+    topList = []
+    allFile = open(prefix + '_all.txt', 'r')
+    botFile = open(prefix + '_bot.txt', 'r')
+    topFile = open(prefix + '_top.txt', 'r')
+    for line in allFile:
+        line = line.strip()
+        allList.append(line)
+    for line in botFile:
+        line = line.strip()
+        botList.append(line)
+    for line in topFile:
+        line = line.strip()
+        topList.append(line)
+    allFile.close()
+    botFile.close()
+    topFile.close()
+    return (allList, botList, topList)
 
-    catdic = {}
-#with open(genesetfilename, 'r') as genesetfile:
-    with open("/home/peplab/data/marydata/intrahost/bin/gowinda/genesets/func_cat/corrected/GeneSet.txt", 'r') as genesetfile:
-        for line in genesetfile:
-            key, des, values = line.strip().split('\t')
-            catdic[key] = (values.split(" "))
+def get_counts(catDict, allList, botList, topList):
+    countsDict = {}
+    for key in catDict:
+        countsDict[key] = {}
+        countsDict[key]['totalGenes'] = len(catDict[key])
+        catSet = set(catDict[key])
+        allSet = set(allList)
+        botSet = set(botList)
+        topSet = set(topList)
+        allinCat = allSet.intersection(catSet)
+        topinCat = allSet.intersection(catSet)
+        botinCat = allSet.intersection(catSet)
+        alldiffCat = allSet.difference(catSet)
+        topdiffCat = allSet.difference(catSet)
+        botdiffCat = allSet.difference(catSet)
+        countsDict[key]['totalGenesInSample'] = len(allinCat)
+        countsDict[key]['sampleGenesNotCat'] = len(alldiffCat)
+        countsDict[key]['topGenesInSample'] = len(topinCat)
+        countsDict[key]['topGenesNotCat'] = len(topdiffCat)
+        countsDict[key]['botGenesInSample'] = len(botinCat)
+        countsDict[key]['botGenesNotCat'] = len(botdiffCat)   
+    return countsDict
 
-    totdic = defaultdict(list)
-    candic = defaultdict(list)
-    totlist = []
-    candlist = []
+def write_files(prefix, countsDict):
+    botCountFile = open(prefix + '_bot_counts.txt', 'w')
+    topCountFile = open(prefix + '_top_counts.txt', 'w')
+    for key in countsDict:
+        botCountFile.write("%s\t%i\t%i\t%i\t%i\t%i\n" %
+        (key, countsDict[key]['botGenesInSample'],
+        countsDict[key]['totalGenesInSample'],
+        countsDict[key]['botGenesNotCat'],
+        countsDict[key]['sampleGenesNotCat'], countsDict[key]['totalGenes']))
+        topCountFile.write("%s\t%i\t%i\t%i\t%i\t%i\n" %
+        (key, countsDict[key]['topGenesInSample'],
+        countsDict[key]['totalGenesInSample'],
+        countsDict[key]['topGenesNotCat'],
+        countsDict[key]['sampleGenesNotCat'], countsDict[key]['totalGenes']))
+    botCountFile.close()
+    topCountFile.close()
 
-#with open(totsampfilename, 'r') as totfile:
-    with open(sample + '_all.txt', 'r') as totfile:
-        for line in totfile:
-            gene = line.strip()
-            totlist.append(gene)
-
-#with open(candsampfilename, 'r') as candfile:
-    with open(sample + '_' + tail + '.txt', 'r') as candfile:
-        for line in candfile:
-            gene = line.strip()
-            candlist.append(gene)
-
-    print(len(totlist))
-    print(len(candlist))
-
-#with open(totsampfilename, 'r') as totsampfile:
-    with open(sample + '_all.txt', 'r') as totsampfile:
-        for key in catdic:
-            totsampfile.seek(0)
-            for line in totsampfile:
-                gene = line.strip()
-                if gene in catdic[key]:
-                    totdic[key].append(gene)
-                   
-#with open(candsampfilename, 'r') as candsampfile:
-    with open(sample + '_' + tail + '.txt', 'r') as candsampfile:
-        for key in catdic:
-            candsampfile.seek(0)
-            for line in candsampfile:
-                gene = line.strip()
-                if gene in catdic[key]:
-                    candic[key].append(gene)
-
-    print(len(totdic))
-    print(len(candic))
-    print(len(catdic))
-
-    with open(sample + '_' + tail + '_FIN' + '.counts', 'w') as outfile:               
-        for key in catdic:
-            outfile.write(key + '\t' + str(len(candic[key])) + '\t' + str(len(totdic[key])) + '\t' + str(len(candlist)-len(candic[key])) + '\t' + str(len(totlist)-len(totdic[key])) + '\t' + str(len(catdic[key])) + '\n')
+if len(sys.argv) != 3:
+    usage()
+    sys.exit(0)
+geneSetFile, prefix = sys.argv[1:]
+catDict = get_categories(geneSetFile)
+allList, botList, topList = get_genes(prefix)
+countsDict = get_counts(catDict, allList, botList, topList)
+write_files(prefix, countsDict)
