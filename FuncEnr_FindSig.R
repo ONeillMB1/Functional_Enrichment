@@ -1,3 +1,5 @@
+#!/usr/bin/Rscript --vanilla
+
 get_fisher <- function(df){
   mat <- matrix(as.numeric(df[c(2:5)]), ncol=2)
   f <- fisher.test(as.table(mat))
