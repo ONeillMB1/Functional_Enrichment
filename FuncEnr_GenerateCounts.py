@@ -36,7 +36,7 @@ def get_categories2(geneSetFile):
         catDict[cat] = line[2].split()
     return catDict
 
-def get_genes(prefix):
+def get_genes(prefix, percentile):
     """ Gets a list of genes from three files. One representing all genes in a
     sample, one representing the upper tail of a distribution of those genes,
     and one representing the lower tail of a distribution of those genes. """
@@ -44,8 +44,8 @@ def get_genes(prefix):
     botList = []
     topList = []
     allFile = open(prefix + '_all.txt', 'r')
-    botFile = open(prefix + '_bot.txt', 'r')
-    topFile = open(prefix + '_top.txt', 'r')
+    botFile = open(prefix + '_bot' + percentile + '.txt', 'r')
+    topFile = open(prefix + '_top' + percentile + '.txt', 'r')
     for line in allFile:
         line = line.strip()
         allList.append(line)
@@ -83,9 +83,9 @@ def get_counts(catDict, allList, botList, topList):
         countsDict[key]['botGenesNotCat'] = len(botdiffCat)   
     return countsDict
 
-def write_files(prefix, countsDict):
-    botCountFile = open(prefix + '_bot_counts.txt', 'w')
-    topCountFile = open(prefix + '_top_counts.txt', 'w')
+def write_files(prefix, percentile, countsDict):
+    botCountFile = open(prefix + '_bot' + percentile + '_counts.txt', 'w')
+    topCountFile = open(prefix + '_top' + percentile + '_counts.txt', 'w')
     for key in countsDict:
         botCountFile.write("%s\t%i\t%i\t%i\t%i\t%i\n" %
         (key, countsDict[key]['botGenesInSample'],
@@ -105,6 +105,7 @@ if len(sys.argv) != 3:
     sys.exit(0)
 geneSetFile, prefix = sys.argv[1:]
 catDict = get_categories(geneSetFile)
-allList, botList, topList = get_genes(prefix)
-countsDict = get_counts(catDict, allList, botList, topList)
-write_files(prefix, countsDict)
+for percentile in ['1', '5', '10']:
+    allList, botList, topList = get_genes(prefix, percentile)
+    countsDict = get_counts(catDict, allList, botList, topList)
+    write_files(prefix, percentile, countsDict)

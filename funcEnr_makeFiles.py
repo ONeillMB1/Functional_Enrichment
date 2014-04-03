@@ -55,25 +55,47 @@ def calculate_cutoff(statList):
     a = np.array(statList)
     print 'Minimum: %s, Maximum: %s' % (a.min(), a.max())
     print 'Median: %s, Mean: %s' % (np.median(a), np.mean(a))
-    bottomCutoff = np.percentile(a, 5)
-    topCutoff = np.percentile(a, 95)
-    print '5th percentile: %s, 95th percentile: %s' % (bottomCutoff, topCutoff)
-    return (bottomCutoff, topCutoff)
+    bottom1Cutoff = np.percentile(a, 1)
+    bottom5Cutoff = np.percentile(a, 5)
+    top1Cutoff = np.percentile(a, 99)
+    top5Cutoff = np.percentile(a, 95)
+    bottom10Cutoff = np.percentile(a, 10)
+    top10Cutoff = np.percentile(a, 90)
+    print '5th: %s, 95th: %s' % (bottom5Cutoff, top5Cutoff)
+    return (bottom1Cutoff, top1Cutoff, bottom5Cutoff, top5Cutoff, 
+    bottom10Cutoff, top10Cutoff)
 
-def write_files(inputFile, nameDict, bottomCutoff, topCutoff):
+def write_files(inputFile, nameDict, bottom1Cutoff, top1Cutoff, 
+    bottom5Cutoff, top5Cutoff, bottom10Cutoff, top10Cutoff):
     prefix = os.path.splitext(inputFile)[0]
     allFile = open(prefix + '_all.txt', 'w')
-    botFile = open(prefix + '_bot.txt', 'w')
-    topFile = open(prefix + '_top.txt', 'w')
+    bot1File = open(prefix + '_bot1.txt', 'w')
+    top1File = open(prefix + '_top1.txt', 'w')
+    bot5File = open(prefix + '_bot5.txt', 'w')
+    top5File = open(prefix + '_top5.txt', 'w')
+    bot10File = open(prefix + '_bot10.txt', 'w')
+    top10File = open(prefix + '_top10.txt', 'w')
     for name in nameDict:
         allFile.write(name + '\n')
-        if nameDict[name] < bottomCutoff:
-            botFile.write(name + '\n')
-        elif nameDict[name] > topCutoff:
-            topFile.write(name + '\n')
+        if nameDict[name] < bottom1Cutoff:
+            bot1File.write(name + '\n')
+        if nameDict[name] < bottom5Cutoff:
+            bot5File.write(name + '\n')
+        if nameDict[name] < bottom10Cutoff:
+            bot10File.write(name + '\n')
+        if nameDict[name] > top10Cutoff:
+            top10File.write(name + '\n')
+        if nameDict[name] > top5Cutoff:
+            top5File.write(name + '\n')
+        if nameDict[name] > top1Cutoff:
+            top1File.write(name + '\n')
     allFile.close()
-    botFile.close()
-    topFile.close()
+    bot1File.close()
+    top1File.close()
+    bot5File.close()
+    top5File.close()
+    bot10File.close()
+    top10File.close()
 
 inputFile, statColumn = get_arguments(sys.argv[1:])
 
@@ -82,5 +104,6 @@ if inputFile is None or statColumn is None:
     sys.exit()
 
 nameDict, statList = get_data(inputFile, statColumn)
-bottomCutoff, topCutoff = calculate_cutoff(statList)
-write_files(inputFile, nameDict, bottomCutoff, topCutoff) 
+bot1Cutoff, top1Cutoff, bot5Cutoff, top5Cutoff, bot10Cutoff, top10Cutoff = calculate_cutoff(statList)
+write_files(inputFile, nameDict, bot1Cutoff, top1Cutoff, bot5Cutoff, top5Cutoff,
+bot10Cutoff, top10Cutoff) 
