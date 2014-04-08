@@ -16,8 +16,9 @@ def get_arguments(argv):
         sys.exit()
     inputFile = None
     statColumn = None
+    noData = None
     try:
-        opts, args = getopt.getopt(argv, "i:c:")
+        opts, args = getopt.getopt(argv, "i:c:n:")
     except getopt.GetoptError:
         usage()
         sys.exit()
@@ -26,14 +27,17 @@ def get_arguments(argv):
             inputFile = arg
         elif opt == '-c':
             statColumn = int(arg)
-    return(inputFile, statColumn)
+        elif opt == '-n':
+            noData = arg
+    return(inputFile, statColumn, noData)
 
 def usage():
     print "funcEnr_makeFiles.py\n \
         -i <input file>\n \
-        -c <column number of statistic>"
+        -c <column number of statistic>\n \
+        -n <no data value (default is None)>"
 
-def get_data(inputFile, statColumn):
+def get_data(inputFile, statColumn, noData):
     nameDict = {}
     statList = []
     infile = open(inputFile, 'r')
@@ -42,12 +46,13 @@ def get_data(inputFile, statColumn):
             line = line.strip()
             data = line.split('\t')
             name = data[0]
-            try:
+            if data[statColumn] != noData:
                 stat = float(data[statColumn])
-            except ValueError, e:
+                nameDict[name] = stat
+                statList.append(stat)
+            else:
                 print '%s does not have value for this statistic' % name
-            nameDict[name] = stat
-            statList.append(stat)
+
     infile.close()
     return (nameDict, statList)
 
@@ -97,13 +102,13 @@ def write_files(inputFile, nameDict, bottom1Cutoff, top1Cutoff,
     bot10File.close()
     top10File.close()
 
-inputFile, statColumn = get_arguments(sys.argv[1:])
+inputFile, statColumn, noData = get_arguments(sys.argv[1:])
 
 if inputFile is None or statColumn is None:
     usage()
     sys.exit()
 
-nameDict, statList = get_data(inputFile, statColumn)
+nameDict, statList = get_data(inputFile, statColumn, noData)
 bot1Cutoff, top1Cutoff, bot5Cutoff, top5Cutoff, bot10Cutoff, top10Cutoff = calculate_cutoff(statList)
 write_files(inputFile, nameDict, bot1Cutoff, top1Cutoff, bot5Cutoff, top5Cutoff,
 bot10Cutoff, top10Cutoff) 
