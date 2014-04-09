@@ -16,7 +16,10 @@ def get_categories(geneSetFile):
     for line in catFile:
         line = line.strip()
         line = line.split('\t')
-        cat = line[1]
+        if len(line) == 1:
+            cat = "undefined"
+        else:
+            cat = line[1]
         gene = line[0].split()[0]
         if cat in catDict:
             catDict[cat].append(gene)
