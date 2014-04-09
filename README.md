@@ -49,3 +49,13 @@ one that describes only those with significance < .05 after correction.
 Current Versions: R 3.1.0
 
 Usage: FuncEnr_FindSig.R 
+
+###funcEnr_readKEGGOrthology.py
+
+This script read a file output by KAAS with KEGG Orthology (KO) assignments
+for each gene in the analysis and produces a file for futher analysis of  
+functional enrichment.
+
+Current Versions: Python 2.7.3
+
+Usage: funcEnr_readKEGGOrthology.py [input file]
