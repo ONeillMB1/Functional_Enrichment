@@ -16,7 +16,7 @@ def get_arguments(argv):
         sys.exit()
     inputFile = None
     statColumn = None
-    noData = None
+    noData = [None]
     try:
         opts, args = getopt.getopt(argv, "i:c:n:")
     except getopt.GetoptError:
@@ -35,7 +35,7 @@ def usage():
     print "funcEnr_makeFiles.py\n \
         -i <input file>\n \
         -c <column number of statistic>\n \
-        -n <no data value (default is None)>"
+        -n <'no,data,values' (default is None)>"
 
 def get_data(inputFile, statColumn, noData):
     nameDict = {}
@@ -46,7 +46,7 @@ def get_data(inputFile, statColumn, noData):
             line = line.strip()
             data = line.split('\t')
             name = data[0]
-            if data[statColumn] != noData:
+            if data[statColumn] not in noData:
                 stat = float(data[statColumn])
                 nameDict[name] = stat
                 statList.append(stat)
@@ -107,6 +107,9 @@ inputFile, statColumn, noData = get_arguments(sys.argv[1:])
 if inputFile is None or statColumn is None:
     usage()
     sys.exit()
+
+if len(noData) > 1:
+    noData = noData.split(',')
 
 nameDict, statList = get_data(inputFile, statColumn, noData)
 bot1Cutoff, top1Cutoff, bot5Cutoff, top5Cutoff, bot10Cutoff, top10Cutoff = calculate_cutoff(statList)
