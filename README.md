@@ -38,6 +38,19 @@ Current Versions: Python 2.7.3
 
 Usage: FuncEnr_GenerateCounts.py [gene set file] [prefix]
 
+###funcEnr_generateCountsOneList.py
+
+This script generates counts for a Fisher's Exact Test of functional enrichment. 
+It is designed to work on one list of genes at a time as opposed to FuncEnr_GenerateCounts.py,
+which looks for genes in the top 1,5,& 10% of a distribution as output by funcEnr_makeFiles.py.
+Inputs to the script are a file describing the genes in each category and a file with a list of
+the genes of interest. 
+
+Current Versions: Python 2.7.3
+
+Usage: funcEnr_generateCountsOneList.py [gene set file] [genes of interest file]
+
+
 ###FuncEnr_FindSig.R
 
 This script performs a Fisher's Exact Test on count files produced by FuncEnr_GenerateCounts.py.
